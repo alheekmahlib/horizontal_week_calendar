@@ -1,10 +1,13 @@
+import 'dart:developer' show log;
+
 import 'package:carousel_slider_plus/carousel_slider_plus.dart';
 import 'package:flutter/material.dart' hide CarouselController;
+import 'package:hijri_calendar/hijri_calendar.dart';
 import 'package:intl/intl.dart';
 
 enum WeekStartFrom {
-  Sunday,
-  Monday,
+  sunday,
+  monday,
 }
 
 class HorizontalWeekCalendar extends StatefulWidget {
@@ -20,7 +23,7 @@ class HorizontalWeekCalendar extends StatefulWidget {
   ///
   /// ```dart
   /// onDateChange: (DateTime date){
-  ///    print(date);
+  ///    log(date);
   /// }
   /// ```
   final Function(DateTime)? onDateChange;
@@ -29,8 +32,8 @@ class HorizontalWeekCalendar extends StatefulWidget {
   ///
   /// ```dart
   /// onWeekChange: (List<DateTime> list){
-  ///    print("First date: ${list.first}");
-  ///    print("Last date: ${list.last}");
+  ///    log("First date: ${list.first}");
+  ///    log("Last date: ${list.last}");
   /// }
   /// ```
   final Function(List<DateTime>)? onWeekChange;
@@ -47,7 +50,7 @@ class HorizontalWeekCalendar extends StatefulWidget {
   ///
   /// Default value is
   /// ```dart
-  /// Theme.of(context).primaryColor.withOpacity(.2)
+  /// Theme.of(context).primaryColor.withValues(alpha: .2)
   /// ```
   final Color? inactiveBackgroundColor;
 
@@ -71,7 +74,7 @@ class HorizontalWeekCalendar extends StatefulWidget {
   ///
   /// Default value is
   /// ```dart
-  /// Theme.of(context).primaryColor.withOpacity(.2)
+  /// Theme.of(context).primaryColor.withValues(alpha: .2)
   /// ```
   final Color? inactiveTextColor;
 
@@ -103,7 +106,7 @@ class HorizontalWeekCalendar extends StatefulWidget {
   ///
   /// Default value is
   /// ```dart
-  /// Theme.of(context).primaryColor.withOpacity(.2)
+  /// Theme.of(context).primaryColor.withValues(alpha: .2)
   /// ```
   final Color? monthColor;
 
@@ -168,7 +171,7 @@ class HorizontalWeekCalendar extends StatefulWidget {
     this.activeNavigatorColor,
     this.inactiveNavigatorColor,
     this.monthColor,
-    this.weekStartFrom = WeekStartFrom.Monday,
+    this.weekStartFrom = WeekStartFrom.monday,
     this.borderRadius,
     this.scrollPhysics = const ClampingScrollPhysics(),
     this.showNavigationButtons = true,
@@ -200,6 +203,10 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
 
   List<List<DateTime>> listOfWeeks = [];
 
+  HijriCalendarConfig dateTimeToHijri(DateTime date) {
+    return HijriCalendarConfig.fromGregorian(date);
+  }
+
   @override
   void initState() {
     initCalender();
@@ -212,7 +219,7 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
     final date = widget.initialDate;
     selectedDate = widget.initialDate;
 
-    DateTime startOfCurrentWeek = widget.weekStartFrom == WeekStartFrom.Monday
+    DateTime startOfCurrentWeek = widget.weekStartFrom == WeekStartFrom.monday
         ? getDate(date.subtract(Duration(days: date.weekday - 1)))
         : getDate(date.subtract(Duration(days: date.weekday % 7)));
 
@@ -230,12 +237,12 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
 
     if (widget.controller != null) {
       widget.controller!._stateChangerPre.addListener(() {
-        print("previous");
+        log("previous");
         _onBackClick();
       });
 
       widget.controller!._stateChangerNex.addListener(() {
-        print("next");
+        log("next");
         _onNextClick();
       });
     }
@@ -285,8 +292,8 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
       //   newCurrentWeekIndex = 1;
       // }
     }
-    // print("canAdd: $canAdd");
-    // print("newCurrentWeekIndex: $newCurrentWeekIndex");
+    // log("canAdd: $canAdd");
+    // log("newCurrentWeekIndex: $newCurrentWeekIndex");
 
     // if (canAdd == true) {
     listOfWeeks.insert(0, plus7Days);
@@ -377,8 +384,8 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
   }
 
   isCurrentYear() {
-    return DateFormat('yyyy').format(currentWeek.first) ==
-        DateFormat('yyyy').format(today);
+    return dateTimeToHijri(currentWeek.first).hYear ==
+        dateTimeToHijri(today).hYear;
   }
 
   @override
@@ -437,23 +444,6 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                             ),
                           )
                         : const SizedBox(),
-                    Text(
-                      widget.monthFormat?.isEmpty ?? true
-                          ? (isCurrentYear()
-                              ? DateFormat('MMMM').format(
-                                  currentWeek.first,
-                                )
-                              : DateFormat('MMMM yyyy').format(
-                                  currentWeek.first,
-                                ))
-                          : DateFormat(widget.monthFormat).format(
-                              currentWeek.first,
-                            ),
-                      style: theme.textTheme.titleMedium!.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: widget.monthColor ?? theme.primaryColor,
-                      ),
-                    ),
                     widget.showNavigationButtons == true
                         ? GestureDetector(
                             onTap: _isNextDisabled()
@@ -538,7 +528,7 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                                         //         theme.primaryColor
                                         //     : widget.inactiveBackgroundColor ??
                                         //         theme.primaryColor
-                                        //             .withOpacity(.2),
+                                        //             .withValues(alpha: .2),
                                         // TODO: disabled
                                         color: DateFormat('dd-MM-yyyy')
                                                     .format(currentDate) ==
@@ -550,7 +540,7 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                                                     _isReachMinimum(currentDate)
                                                 ? widget.inactiveBackgroundColor ??
                                                     theme.primaryColor
-                                                        .withOpacity(.2)
+                                                        .withValues(alpha: .2)
                                                 : widget.disabledBackgroundColor ??
                                                     Colors.grey,
                                         border: Border.all(
@@ -566,7 +556,7 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                                         children: [
                                           Text(
                                             // "$weekIndex: ${listOfWeeks[ind][weekIndex] == DateTime.now()}",
-                                            "${currentDate.day}",
+                                            "${dateTimeToHijri(currentDate).hDay}",
                                             textAlign: TextAlign.center,
                                             style: theme.textTheme.titleLarge!
                                                 .copyWith(
@@ -580,7 +570,7 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                                               //         Colors.white
                                               //     : widget.inactiveTextColor ??
                                               //         Colors.white
-                                              //             .withOpacity(.2),
+                                              //             .withValues(alpha: .2),
                                               // TODO: disabled
                                               color: DateFormat('dd-MM-yyyy')
                                                           .format(
@@ -595,7 +585,8 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                                                               currentDate)
                                                       ? widget.inactiveTextColor ??
                                                           Colors.white
-                                                              .withOpacity(.2)
+                                                              .withValues(
+                                                                  alpha: .2)
                                                       : widget.disabledTextColor ??
                                                           Colors.white,
                                               fontWeight: FontWeight.bold,
@@ -623,7 +614,7 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                                               //         Colors.white
                                               //     : widget.inactiveTextColor ??
                                               //         Colors.white
-                                              //             .withOpacity(.2),
+                                              //             .withValues(alpha: .2),
                                               // TODO: disabled
                                               color: DateFormat('dd-MM-yyyy')
                                                           .format(
@@ -638,7 +629,8 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                                                               currentDate)
                                                       ? widget.inactiveTextColor ??
                                                           Colors.white
-                                                              .withOpacity(.2)
+                                                              .withValues(
+                                                                  alpha: .2)
                                                       : widget.disabledTextColor ??
                                                           Colors.white,
                                             ),
