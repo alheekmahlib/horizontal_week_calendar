@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hijri_calendar/hijri_calendar.dart';
+import 'package:horizontal_week_calendar/horizontal_week_calendar.dart';
 // import 'package:horizontal_week_calendar/horizontal_week_calendar.dart';
 import 'package:intl/intl.dart';
-import 'package:packages_test/horizotal_week_calendar/horizontal_week_calendar.dart';
 
 void main() {
   runApp(const MyApp());
@@ -35,6 +36,25 @@ class _HorizontalWeekCalendarPackageState
     extends State<HorizontalWeekCalendarPackage> {
   var selectedDate = DateTime.now();
 
+  // Helper function to get Hijri month name in Arabic
+  String getHijriMonthName(HijriCalendarConfig hijriDate) {
+    final List<String> arabicMonthNames = [
+      'محرم',
+      'صفر',
+      'ربيع الأول',
+      'ربيع الآخر',
+      'جمادى الأولى',
+      'جمادى الآخرة',
+      'رجب',
+      'شعبان',
+      'رمضان',
+      'شوال',
+      'ذو القعدة',
+      'ذو الحجة'
+    ];
+    return arabicMonthNames[hijriDate.hMonth - 1];
+  }
+
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
@@ -55,9 +75,9 @@ class _HorizontalWeekCalendarPackageState
           child: Column(
             children: [
               HorizontalWeekCalendar(
-                minDate: DateTime(2023, 12, 31),
-                maxDate: DateTime(2024, 1, 31),
-                initialDate: DateTime(2024, 1, 15),
+                minDate: DateTime.now().subtract(const Duration(days: 7)),
+                maxDate: DateTime.now().add(const Duration(days: 7)),
+                initialDate: DateTime.now(),
                 onDateChange: (date) {
                   setState(() {
                     selectedDate = date;
@@ -66,7 +86,7 @@ class _HorizontalWeekCalendarPackageState
                 showTopNavbar: false,
                 monthFormat: "MMMM yyyy",
                 showNavigationButtons: true,
-                weekStartFrom: WeekStartFrom.Monday,
+                weekStartFrom: WeekStartFrom.monday,
                 borderRadius: BorderRadius.circular(7),
                 activeBackgroundColor: Colors.deepPurple,
                 activeTextColor: Colors.white,
@@ -86,7 +106,7 @@ class _HorizontalWeekCalendarPackageState
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
-                      "Selected Date",
+                      "التاريخ المحدد",
                       textAlign: TextAlign.center,
                       style: theme.textTheme.titleMedium!.copyWith(
                         color: theme.primaryColor,
@@ -94,12 +114,25 @@ class _HorizontalWeekCalendarPackageState
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      DateFormat('dd MMM yyyy').format(selectedDate),
+                      "الميلادي: ${DateFormat('dd MMM yyyy').format(selectedDate)}",
                       textAlign: TextAlign.center,
-                      style: theme.textTheme.titleLarge!.copyWith(
+                      style: theme.textTheme.titleMedium!.copyWith(
                         color: theme.primaryColor,
                       ),
                     ),
+                    const SizedBox(height: 5),
+                    Builder(builder: (context) {
+                      var hijriDate =
+                          HijriCalendarConfig.fromGregorian(selectedDate);
+                      return Text(
+                        "الهجري: ${hijriDate.hDay} ${getHijriMonthName(hijriDate)} ${hijriDate.hYear}",
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleLarge!.copyWith(
+                          color: theme.primaryColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    }),
                   ],
                 ),
               ),
