@@ -147,6 +147,10 @@ class HorizontalWeekCalendar extends StatefulWidget {
 
   final HorizontalWeekCalenderController? controller;
 
+  final double? carouselHeight;
+  final double? itemMarginHorizontal;
+  final Color? itemBorderColor;
+
   ///controll the date jump
   ///
   /// ```dart
@@ -180,6 +184,9 @@ class HorizontalWeekCalendar extends StatefulWidget {
     required this.maxDate,
     required this.initialDate,
     this.showTopNavbar = true,
+    this.carouselHeight,
+    this.itemMarginHorizontal,
+    this.itemBorderColor,
   })  :
         // assert(minDate != null && maxDate != null),
         assert(minDate.isBefore(maxDate)),
@@ -517,6 +524,9 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                                         : null,
                                     child: Container(
                                       alignment: Alignment.center,
+                                      margin: EdgeInsets.symmetric(
+                                          horizontal:
+                                              widget.itemMarginHorizontal ?? 2),
                                       decoration: BoxDecoration(
                                         borderRadius: widget.borderRadius,
                                         // color: DateFormat('dd-MM-yyyy').format(
@@ -544,7 +554,8 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                                                 : widget.disabledBackgroundColor ??
                                                     Colors.grey,
                                         border: Border.all(
-                                          color: theme.scaffoldBackgroundColor,
+                                          color: widget.itemBorderColor ??
+                                              theme.scaffoldBackgroundColor,
                                         ),
                                       ),
                                       child: Column(
@@ -649,7 +660,7 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                   initialPage: _initialPage,
                   scrollPhysics:
                       widget.scrollPhysics ?? const ClampingScrollPhysics(),
-                  height: 75,
+                  height: widget.carouselHeight ?? 75,
                   viewportFraction: 1,
                   enableInfiniteScroll: false,
                   reverse: true,
