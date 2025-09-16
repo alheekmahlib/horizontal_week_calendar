@@ -332,10 +332,18 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
             getDate(date.subtract(Duration(days: date.weekday % 7)));
         break;
       case WeekStartFrom.friday:
-        // Friday is index 5 (0=Sunday, 1=Monday, ..., 5=Friday)
-        int daysFromFriday = (date.weekday + 2) % 7; // Adjust for Friday start
+        // Friday is weekday 5, we need to calculate days back to Friday
+        // weekday: 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday, 7=Sunday
+        int daysBackToFriday;
+        if (date.weekday >= 5) {
+          // If today is Friday, Saturday, or Sunday
+          daysBackToFriday = date.weekday - 5;
+        } else {
+          // If today is Monday-Thursday, go back to previous Friday
+          daysBackToFriday = date.weekday + 2;
+        }
         startOfCurrentWeek =
-            getDate(date.subtract(Duration(days: daysFromFriday)));
+            getDate(date.subtract(Duration(days: daysBackToFriday)));
         break;
       default:
         startOfCurrentWeek =
