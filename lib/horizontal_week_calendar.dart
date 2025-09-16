@@ -10,14 +10,15 @@ import 'convert_number_extension.dart';
 enum WeekStartFrom {
   sunday,
   monday,
+  friday,
 }
 
 class HorizontalWeekCalendar extends StatefulWidget {
-  /// week start from Monday or Sunday
+  /// week start from Monday, Sunday, or Friday
   ///
   /// default value is
   /// ```dart
-  /// [WeekStartFrom.Monday]
+  /// [WeekStartFrom.monday]
   /// ```
   final WeekStartFrom? weekStartFrom;
 
@@ -261,22 +262,25 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
 
   // Helper functions for Hijri calendar
   String getHijriDayName(DateTime date) {
+    // Get the day index (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+    int dayIndex = date.weekday % 7;
+
     // Use custom day names if provided
     if (widget.customDayNames != null && widget.customDayNames!.length == 7) {
-      return widget.customDayNames![date.weekday % 7];
+      return widget.customDayNames![dayIndex];
     }
 
-    // Fallback to default Arabic names
+    // Fallback to default Arabic names (starting from Sunday)
     final List<String> arabicDayNames = [
-      'الأحد',
-      'الإثنين',
-      'الثلاثاء',
-      'الأربعاء',
-      'الخميس',
-      'الجمعة',
-      'السبت'
+      'الأحد', // Sunday (0)
+      'الإثنين', // Monday (1)
+      'الثلاثاء', // Tuesday (2)
+      'الأربعاء', // Wednesday (3)
+      'الخميس', // Thursday (4)
+      'الجمعة', // Friday (5)
+      'السبت' // Saturday (6)
     ];
-    return arabicDayNames[date.weekday % 7];
+    return arabicDayNames[dayIndex];
   }
 
   String getHijriMonthName(HijriCalendarConfig hijriDate) {
@@ -316,9 +320,27 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
     final date = widget.initialDate;
     selectedDate = widget.initialDate;
 
-    DateTime startOfCurrentWeek = widget.weekStartFrom == WeekStartFrom.monday
-        ? getDate(date.subtract(Duration(days: date.weekday - 1)))
-        : getDate(date.subtract(Duration(days: date.weekday % 7)));
+    DateTime startOfCurrentWeek;
+
+    switch (widget.weekStartFrom) {
+      case WeekStartFrom.monday:
+        startOfCurrentWeek =
+            getDate(date.subtract(Duration(days: date.weekday - 1)));
+        break;
+      case WeekStartFrom.sunday:
+        startOfCurrentWeek =
+            getDate(date.subtract(Duration(days: date.weekday % 7)));
+        break;
+      case WeekStartFrom.friday:
+        // Friday is index 5 (0=Sunday, 1=Monday, ..., 5=Friday)
+        int daysFromFriday = (date.weekday + 2) % 7; // Adjust for Friday start
+        startOfCurrentWeek =
+            getDate(date.subtract(Duration(days: daysFromFriday)));
+        break;
+      default:
+        startOfCurrentWeek =
+            getDate(date.subtract(Duration(days: date.weekday - 1)));
+    }
 
     currentWeek.add(startOfCurrentWeek);
     for (int index = 0; index < 6; index++) {
