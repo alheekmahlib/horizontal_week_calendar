@@ -5,6 +5,8 @@ import 'package:flutter/material.dart' hide CarouselController;
 import 'package:hijri_calendar/hijri_calendar.dart';
 import 'package:intl/intl.dart';
 
+import 'convert_number_extension.dart';
+
 enum WeekStartFrom {
   sunday,
   monday,
@@ -151,6 +153,27 @@ class HorizontalWeekCalendar extends StatefulWidget {
   final double? itemMarginHorizontal;
   final Color? itemBorderColor;
 
+  /// Whether to translate numbers according to the specified language
+  ///
+  /// Default value is `false`
+  final bool translateNumbers;
+
+  /// Language code for number translation
+  ///
+  /// Supported languages: 'ar', 'en', 'bn', 'ur'
+  /// Default value is `'en'`
+  final String languageCode;
+
+  /// Custom day names starting from Sunday
+  /// Must contain exactly 7 names: [Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday]
+  /// If null, default Arabic names will be used
+  final List<String>? customDayNames;
+
+  /// Custom month names for Hijri calendar starting from Muharram
+  /// Must contain exactly 12 names: [Muharram, Safar, Rabi' al-awwal, ...]
+  /// If null, default Arabic names will be used
+  final List<String>? customMonthNames;
+
   ///controll the date jump
   ///
   /// ```dart
@@ -187,6 +210,10 @@ class HorizontalWeekCalendar extends StatefulWidget {
     this.carouselHeight,
     this.itemMarginHorizontal,
     this.itemBorderColor,
+    this.translateNumbers = false,
+    this.languageCode = 'en',
+    this.customDayNames,
+    this.customMonthNames,
   })  :
         // assert(minDate != null && maxDate != null),
         assert(minDate.isBefore(maxDate)),
@@ -212,6 +239,51 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
 
   HijriCalendarConfig dateTimeToHijri(DateTime date) {
     return HijriCalendarConfig.fromGregorian(date);
+  }
+
+  // Helper functions for Hijri calendar
+  String getHijriDayName(DateTime date) {
+    // Use custom day names if provided
+    if (widget.customDayNames != null && widget.customDayNames!.length == 7) {
+      return widget.customDayNames![date.weekday % 7];
+    }
+
+    // Fallback to default Arabic names
+    final List<String> arabicDayNames = [
+      'الأحد',
+      'الإثنين',
+      'الثلاثاء',
+      'الأربعاء',
+      'الخميس',
+      'الجمعة',
+      'السبت'
+    ];
+    return arabicDayNames[date.weekday % 7];
+  }
+
+  String getHijriMonthName(HijriCalendarConfig hijriDate) {
+    // Use custom month names if provided
+    if (widget.customMonthNames != null &&
+        widget.customMonthNames!.length == 12) {
+      return widget.customMonthNames![hijriDate.hMonth - 1];
+    }
+
+    // Fallback to default Arabic names
+    final List<String> arabicMonthNames = [
+      'محرم',
+      'صفر',
+      'ربيع الأول',
+      'ربيع الآخر',
+      'جمادى الأولى',
+      'جمادى الآخرة',
+      'رجب',
+      'شعبان',
+      'رمضان',
+      'شوال',
+      'ذو القعدة',
+      'ذو الحجة'
+    ];
+    return arabicMonthNames[hijriDate.hMonth - 1];
   }
 
   @override
@@ -451,6 +523,22 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                             ),
                           )
                         : const SizedBox(),
+                    Text(
+                      widget.monthFormat?.isEmpty ?? true
+                          ? (isCurrentYear()
+                              ? getHijriMonthName(
+                                  dateTimeToHijri(currentWeek.first))
+                              : widget.translateNumbers
+                                  ? "${getHijriMonthName(dateTimeToHijri(currentWeek.first))} ${"${dateTimeToHijri(currentWeek.first).hYear}".convertNumbers(widget.languageCode)}"
+                                  : "${getHijriMonthName(dateTimeToHijri(currentWeek.first))} ${dateTimeToHijri(currentWeek.first).hYear}")
+                          : DateFormat(widget.monthFormat).format(
+                              currentWeek.first,
+                            ),
+                      style: theme.textTheme.titleMedium!.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: widget.monthColor ?? theme.primaryColor,
+                      ),
+                    ),
                     widget.showNavigationButtons == true
                         ? GestureDetector(
                             onTap: _isNextDisabled()
@@ -567,7 +655,11 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                                         children: [
                                           Text(
                                             // "$weekIndex: ${listOfWeeks[ind][weekIndex] == DateTime.now()}",
-                                            "${dateTimeToHijri(currentDate).hDay}",
+                                            widget.translateNumbers
+                                                ? "${dateTimeToHijri(currentDate).hDay}"
+                                                    .convertNumbers(
+                                                        widget.languageCode)
+                                                : "${dateTimeToHijri(currentDate).hDay}",
                                             textAlign: TextAlign.center,
                                             style: theme.textTheme.titleLarge!
                                                 .copyWith(
@@ -607,11 +699,8 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                                             height: 4,
                                           ),
                                           Text(
-                                            DateFormat(
-                                              'EEE',
-                                            ).format(
-                                              listOfWeeks[ind][weekIndex],
-                                            ),
+                                            getHijriDayName(
+                                                listOfWeeks[ind][weekIndex]),
                                             textAlign: TextAlign.center,
                                             style: theme.textTheme.bodyLarge!
                                                 .copyWith(

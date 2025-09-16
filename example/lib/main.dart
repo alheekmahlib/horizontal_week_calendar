@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hijri_calendar/hijri_calendar.dart';
+import 'package:horizontal_week_calendar/convert_number_extension.dart';
 import 'package:horizontal_week_calendar/horizontal_week_calendar.dart';
 // import 'package:horizontal_week_calendar/horizontal_week_calendar.dart';
 import 'package:intl/intl.dart';
@@ -35,6 +36,8 @@ class HorizontalWeekCalendarPackage extends StatefulWidget {
 class _HorizontalWeekCalendarPackageState
     extends State<HorizontalWeekCalendarPackage> {
   var selectedDate = DateTime.now();
+  bool translateNumbers = true; // خاصية ترجمة الأرقام
+  String languageCode = 'ar'; // رمز اللغة
 
   // Helper function to get Hijri month name in Arabic
   String getHijriMonthName(HijriCalendarConfig hijriDate) {
@@ -83,7 +86,7 @@ class _HorizontalWeekCalendarPackageState
                     selectedDate = date;
                   });
                 },
-                showTopNavbar: false,
+                showTopNavbar: true,
                 monthFormat: "MMMM yyyy",
                 showNavigationButtons: true,
                 weekStartFrom: WeekStartFrom.monday,
@@ -99,6 +102,67 @@ class _HorizontalWeekCalendarPackageState
                 monthColor: Colors.deepPurple,
                 onWeekChange: (List<DateTime> dates) {},
                 scrollPhysics: const BouncingScrollPhysics(),
+                // إضافة الخاصيات الجديدة
+                translateNumbers: translateNumbers,
+                languageCode: languageCode,
+              ),
+              const SizedBox(height: 20),
+              // عناصر التحكم في الترجمة
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "ترجمة الأرقام:",
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          Switch(
+                            value: translateNumbers,
+                            onChanged: (value) {
+                              setState(() {
+                                translateNumbers = value;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "اللغة:",
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          DropdownButton<String>(
+                            value: languageCode,
+                            items: const [
+                              DropdownMenuItem(
+                                  value: 'ar', child: Text('عربي')),
+                              DropdownMenuItem(
+                                  value: 'en', child: Text('English')),
+                              DropdownMenuItem(
+                                  value: 'bn', child: Text('বাংলা')),
+                              DropdownMenuItem(
+                                  value: 'ur', child: Text('اردو')),
+                            ],
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() {
+                                  languageCode = value;
+                                });
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
               Expanded(
                 child: Column(
@@ -124,8 +188,14 @@ class _HorizontalWeekCalendarPackageState
                     Builder(builder: (context) {
                       var hijriDate =
                           HijriCalendarConfig.fromGregorian(selectedDate);
+                      String hijriDay = translateNumbers
+                          ? "${hijriDate.hDay}".convertNumbers(languageCode)
+                          : "${hijriDate.hDay}";
+                      String hijriYear = translateNumbers
+                          ? "${hijriDate.hYear}".convertNumbers(languageCode)
+                          : "${hijriDate.hYear}";
                       return Text(
-                        "الهجري: ${hijriDate.hDay} ${getHijriMonthName(hijriDate)} ${hijriDate.hYear}",
+                        "الهجري: $hijriDay ${getHijriMonthName(hijriDate)} $hijriYear",
                         textAlign: TextAlign.center,
                         style: theme.textTheme.titleLarge!.copyWith(
                           color: theme.primaryColor,
