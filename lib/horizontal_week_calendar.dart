@@ -174,6 +174,21 @@ class HorizontalWeekCalendar extends StatefulWidget {
   /// If null, default Arabic names will be used
   final List<String>? customMonthNames;
 
+  /// Text style for day numbers
+  ///
+  /// Default value is `null` (uses theme default)
+  final TextStyle? dayTextStyle;
+
+  /// Text style for day names (Sun, Mon, etc.)
+  ///
+  /// Default value is `null` (uses theme default)
+  final TextStyle? dayNameTextStyle;
+
+  /// Text style for month display in top navbar
+  ///
+  /// Default value is `null` (uses theme default)
+  final TextStyle? monthTextStyle;
+
   ///controll the date jump
   ///
   /// ```dart
@@ -214,6 +229,9 @@ class HorizontalWeekCalendar extends StatefulWidget {
     this.languageCode = 'en',
     this.customDayNames,
     this.customMonthNames,
+    this.dayTextStyle,
+    this.dayNameTextStyle,
+    this.monthTextStyle,
   })  :
         // assert(minDate != null && maxDate != null),
         assert(minDate.isBefore(maxDate)),
@@ -534,7 +552,9 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                           : DateFormat(widget.monthFormat).format(
                               currentWeek.first,
                             ),
-                      style: theme.textTheme.titleMedium!.copyWith(
+                      style: (widget.monthTextStyle ??
+                              theme.textTheme.titleMedium!)
+                          .copyWith(
                         fontWeight: FontWeight.bold,
                         color: widget.monthColor ?? theme.primaryColor,
                       ),
@@ -661,7 +681,8 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                                                         widget.languageCode)
                                                 : "${dateTimeToHijri(currentDate).hDay}",
                                             textAlign: TextAlign.center,
-                                            style: theme.textTheme.titleLarge!
+                                            style: (widget.dayTextStyle ??
+                                                    theme.textTheme.titleLarge!)
                                                 .copyWith(
                                               // color: DateFormat('dd-MM-yyyy')
                                               //             .format(listOfWeeks[
@@ -702,7 +723,8 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                                             getHijriDayName(
                                                 listOfWeeks[ind][weekIndex]),
                                             textAlign: TextAlign.center,
-                                            style: theme.textTheme.bodyLarge!
+                                            style: (widget.dayNameTextStyle ??
+                                                    theme.textTheme.bodyLarge!)
                                                 .copyWith(
                                               // color: DateFormat('dd-MM-yyyy')
                                               //             .format(listOfWeeks[

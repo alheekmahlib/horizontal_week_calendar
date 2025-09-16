@@ -39,23 +39,35 @@ class _HorizontalWeekCalendarPackageState
   bool translateNumbers = true; // خاصية ترجمة الأرقام
   String languageCode = 'ar'; // رمز اللغة
 
-  // Helper function to get Hijri month name in Arabic
+  // أمثلة على الأسماء المخصصة
+  List<String> customDayNames = [
+    'الأحد',
+    'الإثنين',
+    'الثلاثاء',
+    'الأربعاء',
+    'الخميس',
+    'الجمعة',
+    'السبت'
+  ];
+
+  List<String> customMonthNames = [
+    'محرم',
+    'صفر',
+    'ربيع الأول',
+    'ربيع الآخر',
+    'جمادى الأولى',
+    'جمادى الآخرة',
+    'رجب',
+    'شعبان',
+    'رمضان',
+    'شوال',
+    'ذو القعدة',
+    'ذو الحجة'
+  ];
+
+  // Helper function to get Hijri month name
   String getHijriMonthName(HijriCalendarConfig hijriDate) {
-    final List<String> arabicMonthNames = [
-      'محرم',
-      'صفر',
-      'ربيع الأول',
-      'ربيع الآخر',
-      'جمادى الأولى',
-      'جمادى الآخرة',
-      'رجب',
-      'شعبان',
-      'رمضان',
-      'شوال',
-      'ذو القعدة',
-      'ذو الحجة'
-    ];
-    return arabicMonthNames[hijriDate.hMonth - 1];
+    return customMonthNames[hijriDate.hMonth - 1];
   }
 
   @override
