@@ -2,7 +2,7 @@ import 'dart:developer' show log;
 
 import 'package:carousel_slider_plus/carousel_slider_plus.dart';
 import 'package:flutter/material.dart' hide CarouselController;
-import 'package:hijri_calendar/hijri_calendar.dart';
+import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
 
 import 'convert_number_extension.dart';
@@ -256,8 +256,8 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
 
   List<List<DateTime>> listOfWeeks = [];
 
-  HijriCalendarConfig dateTimeToHijri(DateTime date) {
-    return HijriCalendarConfig.fromGregorian(date);
+  HijriCalendar dateTimeToHijri(DateTime date) {
+    return HijriCalendar.fromDate(date);
   }
 
   // Helper functions for Hijri calendar
@@ -283,7 +283,7 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
     return arabicDayNames[dayIndex];
   }
 
-  String getHijriMonthName(HijriCalendarConfig hijriDate) {
+  String getHijriMonthName(HijriCalendar hijriDate) {
     // Use custom month names if provided
     if (widget.customMonthNames != null &&
         widget.customMonthNames!.length == 12) {
