@@ -38,6 +38,7 @@ class _HorizontalWeekCalendarPackageState
   var selectedDate = DateTime.now();
   bool translateNumbers = true; // خاصية ترجمة الأرقام
   String languageCode = 'ar'; // رمز اللغة
+  bool useHijriDates = false; // خاصية استخدام التقويم الهجري
 
   // أمثلة على الأسماء المخصصة
   List<String> customDayNames = [
@@ -99,7 +100,9 @@ class _HorizontalWeekCalendarPackageState
                   });
                 },
                 showTopNavbar: true,
-                monthFormat: "MMMM yyyy",
+                monthFormat: useHijriDates
+                    ? null
+                    : "MMMM yyyy", // استخدام monthFormat فقط للميلادي
                 showNavigationButtons: true,
                 weekStartFrom: WeekStartFrom.monday,
                 borderRadius: BorderRadius.circular(7),
@@ -114,17 +117,60 @@ class _HorizontalWeekCalendarPackageState
                 monthColor: Colors.deepPurple,
                 onWeekChange: (List<DateTime> dates) {},
                 scrollPhysics: const BouncingScrollPhysics(),
-                // إضافة الخاصيات الجديدة
+                // الخاصيات الجديدة للنظام الهجين
+                useHijriDates: useHijriDates,
+                hijriMinDate: useHijriDates
+                    ? HijriCalendarConfig.fromGregorian(
+                        DateTime.now().subtract(const Duration(days: 7)))
+                    : null,
+                hijriMaxDate: useHijriDates
+                    ? HijriCalendarConfig.fromGregorian(
+                        DateTime.now().add(const Duration(days: 7)))
+                    : null,
+                hijriInitialDate: useHijriDates
+                    ? HijriCalendarConfig.fromGregorian(DateTime.now())
+                    : null,
+                // خاصيات الترجمة والتخصيص
                 translateNumbers: translateNumbers,
                 languageCode: languageCode,
+                customDayNames: customDayNames,
+                customMonthNames: customMonthNames,
+                // خاصيات التصميم
+                dayTextStyle:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                dayNameTextStyle: const TextStyle(fontSize: 12),
+                monthTextStyle:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
-              // عناصر التحكم في الترجمة
+              // عناصر التحكم في الترجمة ونوع التقويم
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "نوع التقويم:",
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          Switch(
+                            value: useHijriDates,
+                            onChanged: (value) {
+                              setState(() {
+                                useHijriDates = value;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      Text(
+                        useHijriDates ? "التقويم الهجري" : "التقويم الميلادي",
+                        style: theme.textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -189,32 +235,61 @@ class _HorizontalWeekCalendarPackageState
                       ),
                     ),
                     const SizedBox(height: 3),
-                    Text(
-                      "الميلادي: ${DateFormat('dd MMM yyyy').format(selectedDate)}",
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.titleMedium!.copyWith(
-                        color: theme.primaryColor,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    Builder(builder: (context) {
-                      var hijriDate =
-                          HijriCalendarConfig.fromGregorian(selectedDate);
-                      String hijriDay = translateNumbers
-                          ? "${hijriDate.hDay}".convertNumbers(languageCode)
-                          : "${hijriDate.hDay}";
-                      String hijriYear = translateNumbers
-                          ? "${hijriDate.hYear}".convertNumbers(languageCode)
-                          : "${hijriDate.hYear}";
-                      return Text(
-                        "الهجري: $hijriDay ${getHijriMonthName(hijriDate)} $hijriYear",
+                    if (!useHijriDates) ...[
+                      Text(
+                        "الميلادي: ${DateFormat('dd MMM yyyy').format(selectedDate)}",
                         textAlign: TextAlign.center,
-                        style: theme.textTheme.titleLarge!.copyWith(
+                        style: theme.textTheme.titleMedium!.copyWith(
                           color: theme.primaryColor,
-                          fontWeight: FontWeight.bold,
                         ),
-                      );
-                    }),
+                      ),
+                      const SizedBox(height: 5),
+                      Builder(builder: (context) {
+                        var hijriDate =
+                            HijriCalendarConfig.fromGregorian(selectedDate);
+                        String hijriDay = translateNumbers
+                            ? "${hijriDate.hDay}".convertNumbers(languageCode)
+                            : "${hijriDate.hDay}";
+                        String hijriYear = translateNumbers
+                            ? "${hijriDate.hYear}".convertNumbers(languageCode)
+                            : "${hijriDate.hYear}";
+                        return Text(
+                          "الهجري: $hijriDay ${getHijriMonthName(hijriDate)} $hijriYear",
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.titleLarge!.copyWith(
+                            color: theme.primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      }),
+                    ] else ...[
+                      Builder(builder: (context) {
+                        var hijriDate =
+                            HijriCalendarConfig.fromGregorian(selectedDate);
+                        String hijriDay = translateNumbers
+                            ? "${hijriDate.hDay}".convertNumbers(languageCode)
+                            : "${hijriDate.hDay}";
+                        String hijriYear = translateNumbers
+                            ? "${hijriDate.hYear}".convertNumbers(languageCode)
+                            : "${hijriDate.hYear}";
+                        return Text(
+                          "الهجري: $hijriDay ${getHijriMonthName(hijriDate)} $hijriYear",
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.titleLarge!.copyWith(
+                            color: theme.primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 5),
+                      Text(
+                        "الميلادي: ${DateFormat('dd MMM yyyy').format(selectedDate)}",
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleMedium!.copyWith(
+                          color: theme.primaryColor,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

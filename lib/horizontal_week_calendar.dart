@@ -190,6 +190,28 @@ class HorizontalWeekCalendar extends StatefulWidget {
   /// Default value is `null` (uses theme default)
   final TextStyle? monthTextStyle;
 
+  /// Whether to use Hijri dates instead of Gregorian dates
+  ///
+  /// When true, the calendar will use Hijri calendar system with hijriMinDate, hijriMaxDate, hijriInitialDate
+  /// When false (default), the calendar will use Gregorian calendar system with minDate, maxDate, initialDate
+  /// Default value is `false`
+  final bool useHijriDates;
+
+  /// Minimum Hijri date for the calendar (only used when useHijriDates is true)
+  ///
+  /// This date should be provided when useHijriDates is true
+  final HijriCalendar? hijriMinDate;
+
+  /// Maximum Hijri date for the calendar (only used when useHijriDates is true)
+  ///
+  /// This date should be provided when useHijriDates is true
+  final HijriCalendar? hijriMaxDate;
+
+  /// Initial Hijri date to be selected (only used when useHijriDates is true)
+  ///
+  /// This date should be provided when useHijriDates is true
+  final HijriCalendar? hijriInitialDate;
+
   ///controll the date jump
   ///
   /// ```dart
@@ -233,11 +255,22 @@ class HorizontalWeekCalendar extends StatefulWidget {
     this.dayTextStyle,
     this.dayNameTextStyle,
     this.monthTextStyle,
+    this.useHijriDates = false,
+    this.hijriMinDate,
+    this.hijriMaxDate,
+    this.hijriInitialDate,
   })  :
-        // assert(minDate != null && maxDate != null),
+        // Gregorian calendar validations
         assert(minDate.isBefore(maxDate)),
         assert(
             minDate.isBefore(initialDate) && (initialDate).isBefore(maxDate)),
+        // Hijri calendar validations
+        assert(
+            !useHijriDates ||
+                (hijriMinDate != null &&
+                    hijriMaxDate != null &&
+                    hijriInitialDate != null),
+            'When useHijriDates is true, hijriMinDate, hijriMaxDate, and hijriInitialDate must be provided'),
         super();
 
   @override
@@ -316,9 +349,45 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
 
   DateTime getDate(DateTime d) => DateTime(d.year, d.month, d.day);
 
+  /// Get the effective initial date based on calendar type
+  DateTime getEffectiveInitialDate() {
+    if (widget.useHijriDates) {
+      return widget.hijriInitialDate!.hijriToGregorian(
+        widget.hijriInitialDate!.hYear,
+        widget.hijriInitialDate!.hMonth,
+        widget.hijriInitialDate!.hDay,
+      );
+    }
+    return widget.initialDate;
+  }
+
+  /// Get the effective min date based on calendar type
+  DateTime getEffectiveMinDate() {
+    if (widget.useHijriDates) {
+      return widget.hijriMinDate!.hijriToGregorian(
+        widget.hijriMinDate!.hYear,
+        widget.hijriMinDate!.hMonth,
+        widget.hijriMinDate!.hDay,
+      );
+    }
+    return widget.minDate;
+  }
+
+  /// Get the effective max date based on calendar type
+  DateTime getEffectiveMaxDate() {
+    if (widget.useHijriDates) {
+      return widget.hijriMaxDate!.hijriToGregorian(
+        widget.hijriMaxDate!.hYear,
+        widget.hijriMaxDate!.hMonth,
+        widget.hijriMaxDate!.hDay,
+      );
+    }
+    return widget.maxDate;
+  }
+
   initCalender() {
-    final date = widget.initialDate;
-    selectedDate = widget.initialDate;
+    final date = getEffectiveInitialDate();
+    selectedDate = getEffectiveInitialDate();
 
     DateTime startOfCurrentWeek;
 
@@ -384,7 +453,9 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
       DateTime minusDate = startFrom.add(Duration(days: -(index + 1)));
       minus7Days.add(minusDate);
       // if (widget.minDate != null) {
-      if (minusDate.add(const Duration(days: 1)).isAfter(widget.minDate)) {
+      if (minusDate
+          .add(const Duration(days: 1))
+          .isAfter(getEffectiveMinDate())) {
         canAdd = true;
       }
       // } else {
@@ -471,24 +542,27 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
   // =================
 
   bool _isReachMinimum(DateTime dateTime) {
-    return widget.minDate.add(const Duration(days: -1)).isBefore(dateTime);
+    return getEffectiveMinDate()
+        .add(const Duration(days: -1))
+        .isBefore(dateTime);
   }
 
   bool _isReachMaximum(DateTime dateTime) {
-    return widget.maxDate.add(const Duration(days: 1)).isAfter(dateTime);
+    return getEffectiveMaxDate().add(const Duration(days: 1)).isAfter(dateTime);
   }
 
   bool _isNextDisabled() {
     DateTime lastDate = listOfWeeks[currentWeekIndex].last;
     // if (widget.maxDate != null) {
     String lastDateFormatted = DateFormat('yyyy/MM/dd').format(lastDate);
-    String maxDateFormatted = DateFormat('yyyy/MM/dd').format(widget.maxDate);
+    String maxDateFormatted =
+        DateFormat('yyyy/MM/dd').format(getEffectiveMaxDate());
     if (lastDateFormatted == maxDateFormatted) return true;
     // }
 
     bool isAfter =
         // widget.maxDate == null ? false :
-        lastDate.isAfter(widget.maxDate);
+        lastDate.isAfter(getEffectiveMaxDate());
 
     return isAfter;
     // return listOfWeeks[currentWeekIndex].last.isBefore(DateTime.now());
@@ -498,21 +572,79 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
     DateTime firstDate = listOfWeeks[currentWeekIndex].first;
     // if (widget.minDate != null) {
     String firstDateFormatted = DateFormat('yyyy/MM/dd').format(firstDate);
-    String minDateFormatted = DateFormat('yyyy/MM/dd').format(widget.minDate);
+    String minDateFormatted =
+        DateFormat('yyyy/MM/dd').format(getEffectiveMinDate());
     if (firstDateFormatted == minDateFormatted) return true;
     // }
 
     bool isBefore =
         // widget.minDate == null ? false :
-        firstDate.isBefore(widget.minDate);
+        firstDate.isBefore(getEffectiveMinDate());
 
     return isBefore;
     // return listOfWeeks[currentWeekIndex].last.isBefore(DateTime.now());
   }
 
   isCurrentYear() {
-    return dateTimeToHijri(currentWeek.first).hYear ==
-        dateTimeToHijri(today).hYear;
+    if (widget.useHijriDates) {
+      return dateTimeToHijri(currentWeek.first).hYear ==
+          dateTimeToHijri(today).hYear;
+    } else {
+      return currentWeek.first.year == today.year;
+    }
+  }
+
+  /// Get month display text based on calendar type
+  String getMonthDisplayText() {
+    if (widget.monthFormat?.isNotEmpty == true) {
+      return DateFormat(widget.monthFormat).format(currentWeek.first);
+    }
+
+    if (widget.useHijriDates) {
+      // Use Hijri calendar
+      if (isCurrentYear()) {
+        return getHijriMonthName(dateTimeToHijri(currentWeek.first));
+      } else {
+        final hijriDate = dateTimeToHijri(currentWeek.first);
+        final yearText = widget.translateNumbers
+            ? "${hijriDate.hYear}".convertNumbers(widget.languageCode)
+            : "${hijriDate.hYear}";
+        return "${getHijriMonthName(hijriDate)} $yearText";
+      }
+    } else {
+      // Use Gregorian calendar
+      if (isCurrentYear()) {
+        return DateFormat('MMMM').format(currentWeek.first);
+      } else {
+        final yearText = widget.translateNumbers
+            ? "${currentWeek.first.year}".convertNumbers(widget.languageCode)
+            : "${currentWeek.first.year}";
+        return "${DateFormat('MMMM').format(currentWeek.first)} $yearText";
+      }
+    }
+  }
+
+  /// Get day number display text based on calendar type
+  String getDayDisplayText(DateTime date) {
+    String dayText;
+    if (widget.useHijriDates) {
+      dayText = "${dateTimeToHijri(date).hDay}";
+    } else {
+      dayText = "${date.day}";
+    }
+
+    return widget.translateNumbers
+        ? dayText.convertNumbers(widget.languageCode)
+        : dayText;
+  }
+
+  /// Get day name display text based on calendar type
+  String getDayNameDisplayText(DateTime date) {
+    if (widget.useHijriDates) {
+      return getHijriDayName(date);
+    } else {
+      return DateFormat('E').format(date);
+    }
   }
 
   @override
@@ -572,16 +704,7 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                           )
                         : const SizedBox(),
                     Text(
-                      widget.monthFormat?.isEmpty ?? true
-                          ? (isCurrentYear()
-                              ? getHijriMonthName(
-                                  dateTimeToHijri(currentWeek.first))
-                              : widget.translateNumbers
-                                  ? "${getHijriMonthName(dateTimeToHijri(currentWeek.first))} ${"${dateTimeToHijri(currentWeek.first).hYear}".convertNumbers(widget.languageCode)}"
-                                  : "${getHijriMonthName(dateTimeToHijri(currentWeek.first))} ${dateTimeToHijri(currentWeek.first).hYear}")
-                          : DateFormat(widget.monthFormat).format(
-                              currentWeek.first,
-                            ),
+                      getMonthDisplayText(),
                       style: (widget.monthTextStyle ??
                               theme.textTheme.titleMedium!)
                           .copyWith(
@@ -705,11 +828,7 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                                         children: [
                                           Text(
                                             // "$weekIndex: ${listOfWeeks[ind][weekIndex] == DateTime.now()}",
-                                            widget.translateNumbers
-                                                ? "${dateTimeToHijri(currentDate).hDay}"
-                                                    .convertNumbers(
-                                                        widget.languageCode)
-                                                : "${dateTimeToHijri(currentDate).hDay}",
+                                            getDayDisplayText(currentDate),
                                             textAlign: TextAlign.center,
                                             style: (widget.dayTextStyle ??
                                                     theme.textTheme.titleLarge!)
@@ -750,7 +869,7 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
                                             height: 4,
                                           ),
                                           Text(
-                                            getHijriDayName(
+                                            getDayNameDisplayText(
                                                 listOfWeeks[ind][weekIndex]),
                                             textAlign: TextAlign.center,
                                             style: (widget.dayNameTextStyle ??
