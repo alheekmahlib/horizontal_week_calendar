@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hijri_calendar/hijri_calendar.dart';
+import 'package:hijri/hijri_calendar.dart';
 import 'package:horizontal_week_calendar/convert_number_extension.dart';
 import 'package:horizontal_week_calendar/horizontal_week_calendar.dart';
 // import 'package:horizontal_week_calendar/horizontal_week_calendar.dart';
@@ -67,7 +67,7 @@ class _HorizontalWeekCalendarPackageState
   ];
 
   // Helper function to get Hijri month name
-  String getHijriMonthName(HijriCalendarConfig hijriDate) {
+  String getHijriMonthName(HijriCalendar hijriDate) {
     return customMonthNames[hijriDate.hMonth - 1];
   }
 
@@ -120,15 +120,15 @@ class _HorizontalWeekCalendarPackageState
                 // الخاصيات الجديدة للنظام الهجين
                 useHijriDates: useHijriDates,
                 hijriMinDate: useHijriDates
-                    ? HijriCalendarConfig.fromGregorian(
+                    ? HijriCalendar.fromDate(
                         DateTime.now().subtract(const Duration(days: 7)))
                     : null,
                 hijriMaxDate: useHijriDates
-                    ? HijriCalendarConfig.fromGregorian(
+                    ? HijriCalendar.fromDate(
                         DateTime.now().add(const Duration(days: 7)))
                     : null,
                 hijriInitialDate: useHijriDates
-                    ? HijriCalendarConfig.fromGregorian(DateTime.now())
+                    ? HijriCalendar.fromDate(DateTime.now())
                     : null,
                 // خاصيات الترجمة والتخصيص
                 translateNumbers: translateNumbers,
@@ -245,8 +245,7 @@ class _HorizontalWeekCalendarPackageState
                       ),
                       const SizedBox(height: 5),
                       Builder(builder: (context) {
-                        var hijriDate =
-                            HijriCalendarConfig.fromGregorian(selectedDate);
+                        var hijriDate = HijriCalendar.fromDate(selectedDate);
                         String hijriDay = translateNumbers
                             ? "${hijriDate.hDay}".convertNumbers(languageCode)
                             : "${hijriDate.hDay}";
@@ -264,8 +263,7 @@ class _HorizontalWeekCalendarPackageState
                       }),
                     ] else ...[
                       Builder(builder: (context) {
-                        var hijriDate =
-                            HijriCalendarConfig.fromGregorian(selectedDate);
+                        var hijriDate = HijriCalendar.fromDate(selectedDate);
                         String hijriDay = translateNumbers
                             ? "${hijriDate.hDay}".convertNumbers(languageCode)
                             : "${hijriDate.hDay}";
