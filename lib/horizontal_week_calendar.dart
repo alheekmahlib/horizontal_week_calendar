@@ -293,27 +293,76 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
     return HijriCalendar.fromDate(date);
   }
 
+  // Get day index based on week start from
+  int getDayIndex(DateTime date, WeekStartFrom weekStartFrom) {
+    int weekday = date.weekday; // 1 = Monday, 7 = Sunday
+    switch (weekStartFrom) {
+      case WeekStartFrom.monday:
+        return (weekday - 1) % 7;
+      case WeekStartFrom.sunday:
+        return weekday % 7;
+      case WeekStartFrom.friday:
+        return (weekday - 5) % 7;
+    }
+  }
+
+  // Get adjusted day names based on week start from
+  List<String>? getAdjustedDayNames() {
+    if (widget.customDayNames == null || widget.customDayNames!.length != 7) {
+      return null;
+    }
+    int startIndex;
+    switch (widget.weekStartFrom ?? WeekStartFrom.monday) {
+      case WeekStartFrom.sunday:
+        startIndex = 0;
+        break;
+      case WeekStartFrom.monday:
+        startIndex = 1;
+        break;
+      case WeekStartFrom.friday:
+        startIndex = 5;
+        break;
+    }
+    return widget.customDayNames!.sublist(startIndex) +
+        widget.customDayNames!.sublist(0, startIndex);
+  }
+
   // Helper functions for Hijri calendar
   String getHijriDayName(DateTime date) {
-    // Get the day index (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
-    int dayIndex = date.weekday % 7;
+    int dayIndex =
+        getDayIndex(date, widget.weekStartFrom ?? WeekStartFrom.monday);
 
-    // Use custom day names if provided
-    if (widget.customDayNames != null && widget.customDayNames!.length == 7) {
-      return widget.customDayNames![dayIndex];
+    // Use adjusted custom day names if provided
+    List<String>? adjustedDayNames = getAdjustedDayNames();
+    if (adjustedDayNames != null) {
+      return adjustedDayNames[dayIndex];
     }
 
-    // Fallback to default Arabic names (starting from Sunday)
+    // Fallback to adjusted default Arabic names
     final List<String> arabicDayNames = [
-      'الأحد', // Sunday (0)
-      'الإثنين', // Monday (1)
-      'الثلاثاء', // Tuesday (2)
-      'الأربعاء', // Wednesday (3)
-      'الخميس', // Thursday (4)
-      'الجمعة', // Friday (5)
-      'السبت' // Saturday (6)
+      'الأحد', // 0
+      'الإثنين', // 1
+      'الثلاثاء', // 2
+      'الأربعاء', // 3
+      'الخميس', // 4
+      'الجمعة', // 5
+      'السبت' // 6
     ];
-    return arabicDayNames[dayIndex];
+    int startIndex;
+    switch (widget.weekStartFrom ?? WeekStartFrom.monday) {
+      case WeekStartFrom.sunday:
+        startIndex = 0;
+        break;
+      case WeekStartFrom.monday:
+        startIndex = 1;
+        break;
+      case WeekStartFrom.friday:
+        startIndex = 5;
+        break;
+    }
+    List<String> adjustedArabic = arabicDayNames.sublist(startIndex) +
+        arabicDayNames.sublist(0, startIndex);
+    return adjustedArabic[dayIndex];
   }
 
   String getHijriMonthName(HijriCalendar hijriDate) {
@@ -391,7 +440,9 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
 
     DateTime startOfCurrentWeek;
 
-    switch (widget.weekStartFrom) {
+    WeekStartFrom effectiveWeekStart =
+        widget.weekStartFrom ?? WeekStartFrom.monday;
+    switch (effectiveWeekStart) {
       case WeekStartFrom.monday:
         startOfCurrentWeek =
             getDate(date.subtract(Duration(days: date.weekday - 1)));
@@ -414,9 +465,6 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
         startOfCurrentWeek =
             getDate(date.subtract(Duration(days: daysBackToFriday)));
         break;
-      default:
-        startOfCurrentWeek =
-            getDate(date.subtract(Duration(days: date.weekday - 1)));
     }
 
     currentWeek.add(startOfCurrentWeek);
@@ -640,6 +688,14 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
 
   /// Get day name display text based on calendar type
   String getDayNameDisplayText(DateTime date) {
+    // If custom day names are provided, use them regardless of calendar type
+    List<String>? adjustedDayNames = getAdjustedDayNames();
+    if (adjustedDayNames != null) {
+      int dayIndex =
+          getDayIndex(date, widget.weekStartFrom ?? WeekStartFrom.monday);
+      return adjustedDayNames[dayIndex];
+    }
+
     if (widget.useHijriDates) {
       return getHijriDayName(date);
     } else {
