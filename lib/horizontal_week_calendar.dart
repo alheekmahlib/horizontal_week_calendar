@@ -168,6 +168,7 @@ class HorizontalWeekCalendar extends StatefulWidget {
   /// Custom day names starting from Sunday
   /// Must contain exactly 7 names: [Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday]
   /// If null, default Arabic names will be used
+  /// Example: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   final List<String>? customDayNames;
 
   /// Custom month names for Hijri calendar starting from Muharram
