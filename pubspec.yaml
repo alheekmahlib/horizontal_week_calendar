@@ -13,10 +13,7 @@ dependencies:
     sdk: flutter
   # carousel_slider: ^5.0.0
   carousel_slider_plus: ^7.1.1
-  hijri:
-    git:
-      ref: master
-      url: https://github.com/alheekmahlib/hijri_date.git
+  hijri_date: ^1.0.0
 
 dev_dependencies:
   flutter_test:

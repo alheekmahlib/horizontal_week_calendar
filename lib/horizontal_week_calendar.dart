@@ -2,7 +2,7 @@ import 'dart:developer' show log;
 
 import 'package:carousel_slider_plus/carousel_slider_plus.dart';
 import 'package:flutter/material.dart' hide CarouselController;
-import 'package:hijri/hijri_calendar.dart';
+import 'package:hijri_date/hijri_date.dart';
 import 'package:intl/intl.dart';
 
 import 'convert_number_extension.dart';
@@ -201,17 +201,17 @@ class HorizontalWeekCalendar extends StatefulWidget {
   /// Minimum Hijri date for the calendar (only used when useHijriDates is true)
   ///
   /// This date should be provided when useHijriDates is true
-  final HijriCalendar? hijriMinDate;
+  final HijriDate? hijriMinDate;
 
   /// Maximum Hijri date for the calendar (only used when useHijriDates is true)
   ///
   /// This date should be provided when useHijriDates is true
-  final HijriCalendar? hijriMaxDate;
+  final HijriDate? hijriMaxDate;
 
   /// Initial Hijri date to be selected (only used when useHijriDates is true)
   ///
   /// This date should be provided when useHijriDates is true
-  final HijriCalendar? hijriInitialDate;
+  final HijriDate? hijriInitialDate;
 
   ///controll the date jump
   ///
@@ -290,8 +290,8 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
 
   List<List<DateTime>> listOfWeeks = [];
 
-  HijriCalendar dateTimeToHijri(DateTime date) {
-    return HijriCalendar.fromDate(date);
+  HijriDate dateTimeToHijri(DateTime date) {
+    return HijriDate.fromDate(date);
   }
 
   // Get day index based on week start from
@@ -366,7 +366,7 @@ class _HorizontalWeekCalendarState extends State<HorizontalWeekCalendar> {
     return adjustedArabic[dayIndex];
   }
 
-  String getHijriMonthName(HijriCalendar hijriDate) {
+  String getHijriMonthName(HijriDate hijriDate) {
     // Use custom month names if provided
     if (widget.customMonthNames != null &&
         widget.customMonthNames!.length == 12) {
